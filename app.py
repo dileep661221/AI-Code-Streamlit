@@ -1,11 +1,9 @@
-
+import markdown
 import google.generativeai as genai 
 import os
 import streamlit as st
 import time
 # Initialize Flask app
-app = Flask(__name__)
-app.secret_key = 'your_secret_key_here'  # For flashing messages
 
 
 genai.configure(api_key="AIzaSyAzJI71NwnSz4lV8H6PzLdghqTnMt9zbQg")
