@@ -1,9 +1,6 @@
-import markdown
-import google.generativeai as genai 
-import os
-import streamlit as st
+import streamlit as st  # app development framework
+import google.generativeai as genai  # LLM provider
 import time
-# Initialize Flask app
 
 
 genai.configure(api_key="AIzaSyAzJI71NwnSz4lV8H6PzLdghqTnMt9zbQg")
