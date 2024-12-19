@@ -26,14 +26,14 @@ model = genai.GenerativeModel(model_name="models/gemini-1.5-flash",
 st.markdown(""" <h1 style='color: darkgoldenrod; font-family: "Lucida Handwriting", "Brush Script MT", cursive;'> 👾 AI Code Reviewer</h1> """, unsafe_allow_html=True)
 st.sidebar.title("📝 How to Use")
 st.sidebar.markdown("""
-1. Paste your Python code in the text area below.
+1. Paste your code in the text area below.
 2. Click **Submit** to generate a code review.
 3. Receive detailed feedback on bugs and suggestions for improvement.
 """)
 st.sidebar.markdown("---")
 st.sidebar.write("### About This App")
 st.sidebar.markdown("""
-This app uses **Google Generative AI** to review your Python code, identify bugs, and suggest improvements to make your code cleaner and more efficient.
+This app uses **Google Generative AI** to review your code, identify bugs, and suggest improvements to make your code cleaner and more efficient.
 """)
 
 # enabling a menubar like feature in the UI
@@ -42,7 +42,7 @@ tab_1, tab_2 = st.tabs([':violet[:memo:__Raw Code__]', ':violet[:page_facing_up:
 # assigning & wrapping the desired functionalities within UI of each tab
 with tab_1:
     # a small instruction
-    st.markdown('<p style="font-size: 20px; color: #6c757d;"><b>Enter your Python code below:</b></p>', unsafe_allow_html=True)
+    st.markdown('<p style="font-size: 20px; color: #6c757d;"><b>Enter your code below:</b></p>', unsafe_allow_html=True)
     # ask the user to enter their code & collect it in the variable 'user_prompt'
     user_prompt = st.text_area("", placeholder="Type or paste your code here...", height=250)
     # displaying a button to the user to submit the code
