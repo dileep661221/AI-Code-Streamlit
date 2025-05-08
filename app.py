@@ -1,77 +1,112 @@
-import streamlit as st  # app development framework
-import google.generativeai as genai  # LLM provider
+import streamlit as st
+import google.generativeai as genai
 import time
 
+# Configure your Gemini API key
+genai.configure(api_key="AIzaSyAzJI71NwnSz4lV8H6PzLdghqTnMt9zbQg")  # Replace with your actual key
 
-genai.configure(api_key="AIzaSyAzJI71NwnSz4lV8H6PzLdghqTnMt9zbQg")
+# ===================== System Prompts =====================
 
-# Instruction to the model
-sys_prompt = """
-You are an expert, helpful, and sensible AI Code Reviewer. 
-The user will give you code in any programming language.
-Analyze the code and identify all bugs, errors, and inefficiencies. 
+# For Code Review
+review_prompt = """
+You are an expert, helpful, and sensible AI Code Reviewer.
+Analyze the user's code and identify all bugs, inefficiencies, and issues.
+
 Organize your response into:
 1. **Bug Report**: Include error names, erroneous parts, and descriptions (Red, 28px font).
-2. **Corrected Code**: Provide corrected code with comments (Green, 28px font).
-3. **Suggestions**: Brief feedback for improvement (Blue, 28px font).
-If the language is unsupported or content is irrelevant, politely decline the request.
+2. **Corrected Code**: Provide corrected code with inline comments (Green, 28px font).
+3. **Suggestions**: Offer concise tips for improving code quality (Blue, 28px font).
+
+If the language is unsupported or content is irrelevant, politely decline.
 """
 
-# to do the code reviewing task, we need the help of an LLM
-# here, we have chosen gemini-1.5-flash model
-model = genai.GenerativeModel(model_name="models/gemini-1.5-flash", 
-                              system_instruction=sys_prompt)
+# For Code Generation
+code_generation_prompt = """
+You are an expert software engineer and competitive programmer.
+When the user provides a prompt (e.g., 'binary search in Java', 'build login page in React'),
+generate clean, **optimized**, and well-commented code.
 
-# giving a title to the app's UI
-st.markdown(""" <h1 style='color: darkgoldenrod; font-family: "Lucida Handwriting", "Brush Script MT", cursive;'> 👾 AI Code Reviewer</h1> """, unsafe_allow_html=True)
-st.sidebar.title("📝 How to Use")
+Key Instructions:
+- Always prefer optimal time and space complexity.
+- Avoid brute-force unless explicitly asked.
+- Use best practices in naming, modularity, and readability.
+- Return only code blocks in markdown format.
+- Do not include any explanation unless the prompt asks for it.
+"""
+
+# ===================== Gemini Models =====================
+
+review_model = genai.GenerativeModel(
+    model_name="models/gemini-1.5-flash",
+    system_instruction=review_prompt
+)
+
+generation_model = genai.GenerativeModel(
+    model_name="models/gemini-1.5-flash",
+    system_instruction=code_generation_prompt
+)
+
+# ===================== Streamlit UI =====================
+
+st.set_page_config(page_title="AI Code Reviewer & Generator", layout="wide")
+
+st.markdown(""" 
+<h1 style='color: darkgoldenrod; font-family: "Lucida Handwriting", cursive;'> 
+👾 AI Code Assistant: Review & Generate Code
+</h1> 
+""", unsafe_allow_html=True)
+
+st.sidebar.title("🧠 Features")
 st.sidebar.markdown("""
-1. Paste your code in the text area below.
-2. Click **Submit** to generate a code review.
-3. Receive detailed feedback on bugs and suggestions for improvement.
-""")
-st.sidebar.markdown("---")
-st.sidebar.write("### About This App")
-st.sidebar.markdown("""
-This app uses **Google Generative AI** to review your code, identify bugs, and suggest improvements to make your code cleaner and more efficient.
+- ✅ Code Review (paste or upload)
+- ⚡ Prompt-Based Code Generation
 """)
 
-# enabling a menubar like feature in the UI
-tab_1, tab_2 = st.tabs([':violet[:memo:__Raw Code__]', ':violet[:page_facing_up:__Code File__]'])
+# Tabs
+tab1, tab2, tab3 = st.tabs([
+    ":memo: Review Raw Code", 
+    ":page_facing_up: Review Code File", 
+    ":robot_face: Generate Code From Prompt"
+])
 
-# assigning & wrapping the desired functionalities within UI of each tab
-with tab_1:
-    # a small instruction
-    st.markdown('<p style="font-size: 20px; color: #6c757d;"><b>Enter your code below:</b></p>', unsafe_allow_html=True)
-    # ask the user to enter their code & collect it in the variable 'user_prompt'
-    user_prompt = st.text_area("", placeholder="Type or paste your code here...", height=250)
-    # displaying a button to the user to submit the code
-    btn_click_1 = st.button("Submit", "tab_1")
-    # suppose the user clicks the button, the following need to be done
-    if btn_click_1:
-        # display a message to the user
-        with st.spinner(':green[__Please wait :hourglass_flowing_sand: while I :robot_face: go through :mag: your code ...__]'):
-            time.sleep(7)
-            # ask the model to generate response from the user_prompt
-            response = model.generate_content(user_prompt)
-            # display the response
-            st.markdown(response.text, unsafe_allow_html=True)
+# ========== Tab 1: Raw Code Review ==========
+with tab1:
+    st.markdown('<h3 style="color: steelblue;">Paste your code below:</h3>', unsafe_allow_html=True)
+    user_code = st.text_area("Your Code", placeholder="Paste your code here...", height=250)
+    if st.button("Review Code", key="tab1"):
+        if user_code.strip():
+            with st.spinner("Analyzing your code for issues..."):
+                time.sleep(2)
+                response = review_model.generate_content(user_code)
+                st.markdown(response.text, unsafe_allow_html=True)
+        else:
+            st.warning("Please paste some code first.")
 
-with tab_2:
-    # small instruction to the user 
-    st.markdown('<p style="font-size: 20px; color: #6c757d;"><b>Choose a .py file</b></p>', unsafe_allow_html=True)
-    st.write(":warning:__Only 1 file shall be uploaded__")
-    uploaded_file = st.file_uploader("")
-    # display the name of the file once the user uploads it
-    if uploaded_file:
-        st.write("filename:", uploaded_file.name)
-    btn_click_2 = st.button("Submit", "tab_2")
-    if btn_click_2:
-        # display a message to the user
-        with st.spinner(':green[__Please wait :hourglass_flowing_sand: while I :robot_face: go through :mag: your code file ...__]'):
-            time.sleep(7)
-        # extract the text code from the .py file into the variable bytes data
-        bytes_data = uploaded_file.getvalue().decode("utf-8")
-        response = model.generate_content(bytes_data)
-        # display the LLM's response
-        st.markdown(response.text, unsafe_allow_html=True)
+# ========== Tab 2: File Upload Review ==========
+with tab2:
+    st.markdown('<h3 style="color: steelblue;">Upload a .py file:</h3>', unsafe_allow_html=True)
+    uploaded_file = st.file_uploader("Choose a file", type=["py", "java", "cpp", "txt"])
+    if uploaded_file is not None:
+        st.write(f"📄 Uploaded file: `{uploaded_file.name}`")
+    if st.button("Review Uploaded File", key="tab2"):
+        if uploaded_file is not None:
+            file_content = uploaded_file.read().decode("utf-8")
+            with st.spinner("Reviewing your uploaded file..."):
+                time.sleep(2)
+                response = review_model.generate_content(file_content)
+                st.markdown(response.text, unsafe_allow_html=True)
+        else:
+            st.warning("Please upload a code file.")
+
+# ========== Tab 3: Prompt-Based Code Generation ==========
+with tab3:
+    st.markdown('<h3 style="color: steelblue;">Describe the code you want:</h3>', unsafe_allow_html=True)
+    code_prompt = st.text_area("Prompt", placeholder="Example: Generate binary search in Python with O(log n) complexity")
+    if st.button("Generate Code", key="tab3"):
+        if code_prompt.strip():
+            with st.spinner("Generating optimized code..."):
+                time.sleep(2)
+                response = generation_model.generate_content(code_prompt)
+                st.markdown(response.text, unsafe_allow_html=True)
+        else:
+            st.warning("Please enter a code prompt.")
